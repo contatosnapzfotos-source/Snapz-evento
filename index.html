@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snapz — Editor de Landing Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #E8186D;
+  --pink-light: #ff4d9e;
+  --yellow: #F5E642;
+  --black: #111111;
+  --white: #ffffff;
+  --gray: #1a1a1a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; background:#0d0d0d; color:#fff; }
+
+/* ── TOOLBAR ── */
+#toolbar {
+  position: fixed; top:0; left:0; right:0; z-index:9999;
+  background: #1a1a1a;
+  border-bottom: 2px solid var(--pink);
+  display: flex; align-items: center; gap:10px;
+  padding: 10px 16px;
+  flex-wrap: wrap;
+}
+#toolbar .tb-logo {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.3rem; color:var(--pink); letter-spacing:2px; margin-right:8px;
+}
+.tb-btn {
+  background: #2a2a2a; border: 1.5px solid #333;
+  color: #fff; font-family:'Nunito',sans-serif; font-weight:700;
+  font-size:0.78rem; padding:7px 14px; border-radius:8px;
+  cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition: all 0.15s; white-space:nowrap;
+}
+.tb-btn:hover { background:#333; border-color:#555; }
+.tb-btn.primary { background:var(--pink); border-color:var(--pink); }
+.tb-btn.primary:hover { background:#c5105a; }
+.tb-sep { width:1px; height:28px; background:#333; }
+.tb-hint {
+  font-size:0.72rem; color:rgba(255,255,255,0.35);
+  font-weight:600; margin-left:auto;
+}
+#edit-mode-toggle {
+  background: var(--yellow); color: var(--black);
+  border-color: var(--yellow); font-weight:900;
+}
+#edit-mode-toggle:hover { background:#d4c820; }
+
+/* ── LOGO UPLOAD SLOT ── */
+.logo-upload-wrap {
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-bottom:32px; cursor:pointer; min-height:64px; min-width:180px;
+  border:2px dashed rgba(232,24,109,0.35); border-radius:12px;
+  padding:10px 20px; transition:border-color 0.2s, background 0.2s;
+}
+body.edit-mode .logo-upload-wrap:hover {
+  border-color:var(--pink); background:rgba(232,24,109,0.07);
+}
+.logo-upload-wrap img[src]:not([src=""]) { display:block !important; }
+.logo-upload-wrap img[src]:not([src=""]) ~ .logo-placeholder { display:none !important; }
+.logo-placeholder {
+  display:flex; align-items:center; gap:8px;
+  color:rgba(255,255,255,0.35); font-size:0.75rem;
+  font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  font-family:'Nunito',sans-serif;
+}
+.logo-upload-footer { margin:0 auto 16px; }
+
+/* ── INSTAGRAM PULSE BUTTON ── */
+.insta-pulse {
+  background: linear-gradient(135deg, #E8186D, #c01058) !important;
+  border-color: var(--pink) !important;
+  color: #fff !important;
+  font-weight:900 !important;
+  animation: insta-blink 1.4s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(232,24,109,0.6);
+}
+@keyframes insta-blink {
+  0%   { box-shadow: 0 0 0 0 rgba(232,24,109,0.6); }
+  50%  { box-shadow: 0 0 0 8px rgba(232,24,109,0); }
+  100% { box-shadow: 0 0 0 0 rgba(232,24,109,0); }
+}
+
+/* ── PAGE WRAPPER ── */
+#page { margin-top: 62px; }
+
+/* EDIT MODE styles */
+body.edit-mode [data-edit]:hover {
+  outline: 2px dashed var(--yellow);
+  outline-offset: 3px;
+  cursor: text;
+  border-radius: 4px;
+}
+body.edit-mode .photo-slot:hover,
+body.edit-mode .cover-photo-wrap:hover,
+body.edit-mode .emb-photo-wrap:hover,
+body.edit-mode .campea-foto-wrap:hover {
+  outline: 2px dashed var(--pink);
+  outline-offset: 3px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+body.edit-mode [data-edit]:focus {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.edit-indicator {
+  display: none;
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--yellow); color: var(--black);
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:0.82rem;
+  padding: 10px 22px; border-radius: 100px; z-index:9998;
+  pointer-events: none; letter-spacing:0.5px;
+  box-shadow: 0 4px 20px rgba(245,230,66,0.4);
+}
+body.edit-mode .edit-indicator { display: block; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--black);
+  padding: 50px 24px 44px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content:''; position:absolute; top:-120px; left:50%; transform:translateX(-50%);
+  width:600px; height:600px;
+  background: radial-gradient(circle, rgba(232,24,109,0.18) 0%, transparent 70%);
+  pointer-events:none;
+}
+.logo { display:inline-flex; align-items:center; gap:8px; margin-bottom:36px; }
+.logo-bolt { width:34px; height:44px; }
+.logo-text { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; color:#fff; letter-spacing:2px; }
+.hero-badge {
+  display:inline-block; background:var(--yellow); color:var(--black);
+  font-weight:900; font-size:0.72rem; letter-spacing:3px; text-transform:uppercase;
+  padding:6px 18px; border-radius:100px; margin-bottom:20px;
+}
+.hero h1 {
+  font-family:'Bebas Neue',sans-serif;
+  font-size: clamp(2.6rem, 9vw, 4.8rem);
+  line-height:1.02; color:#fff; margin-bottom:12px;
+}
+.hero h1 .hl { color:var(--pink); }
+.hero-sub {
+  font-size:1rem; color:rgba(255,255,255,0.7);
+  max-width:460px; margin:0 auto 36px;
+  line-height:1.6; font-weight:600;
+}
+
+/* ── COVER ── */
+.cover-wrap {
+  position:relative; margin:0 auto 50px;
+  max-width:500px; padding:0 24px;
+}
+.cover-photo-wrap {
+  width:100%; aspect-ratio:4/3;
+  border-radius:20px; border:3px solid var(--pink);
+  background:#1e1e1e; overflow:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.cover-photo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.cover-photo-wrap .placeholder-txt {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  color:rgba(255,255,255,0.25); font-size:0.82rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.cover-photo-wrap .placeholder-txt svg { opacity:0.25; }
+.cover-photo-wrap img ~ .placeholder-txt { display:none; }
+.polaroid-tag {
+  position:absolute; bottom:-14px; right:30px;
+  background:var(--pink); color:#fff;
+  font-weight:900; font-size:0.78rem;
+  padding:7px 16px; border-radius:100px; letter-spacing:1px;
+  white-space: nowrap;
+}
+
+/* ── STATS ── */
+.stats {
+  display:flex; justify-content:center;
+  background:var(--pink); padding:26px 24px; margin-bottom:56px;
+}
+.stat { flex:1; text-align:center; border-right:1px solid rgba(255,255,255,0.25); padding:0 16px; }
+.stat:last-child { border-right:none; }
+.stat-num { font-family:'Bebas Neue',sans-serif; font-size:2.3rem; color:var(--yellow); line-height:1; }
+.stat-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.85); margin-top:4px; }
+
+/* ── SECTIONS ── */
+.section { padding:0 24px 56px; max-width:600px; margin:0 auto; }
+.section-label {
+  display:flex; align-items:center; gap:10px; margin-bottom:20px;
+}
+.section-label span { font-family:'Bebas Neue',sans-serif; font-size:1.55rem; color:#fff; letter-spacing:2px; }
+.section-label::after { content:''; flex:1; height:2px; background:linear-gradient(90deg,var(--pink),transparent); }
+
+/* ── FOTO GRID ── */
+.foto-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.foto-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.foto-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+
+.photo-slot {
+  border-radius:14px; background:#1e1e1e;
+  border:2px solid #2a2a2a; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; transition:border-color 0.2s;
+}
+.photo-slot:hover { border-color:#444; }
+.photo-slot.large { aspect-ratio:2/1; grid-column:span 2; }
+.photo-slot.sq { aspect-ratio:1; }
+.photo-slot img { width:100%; height:100%; object-fit:cover; display:block; }
+.photo-slot .ph {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:rgba(255,255,255,0.2); font-size:0.65rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px; padding:12px;
+}
+.photo-slot .ph svg { opacity:0.2; }
+.photo-slot img ~ .ph { display:none; }
+
+/* ── CTA ── */
+.cta-box {
+  background:linear-gradient(135deg,#1a0a10,#2a0d1a);
+  border:2px solid var(--pink); border-radius:20px;
+  padding:30px 24px; text-align:center; margin-bottom:56px;
+}
+.cta-box h2 { font-family:'Bebas Neue',sans-serif; font-size:1.85rem; color:#fff; letter-spacing:1px; margin-bottom:8px; }
+.cta-box p { font-size:0.88rem; color:rgba(255,255,255,0.65); font-weight:600; margin-bottom:20px; line-height:1.5; }
+.cta-btn {
+  display:inline-block; background:var(--pink); color:#fff;
+  font-family:'Bebas Neue',sans-serif; font-size:1.25rem; letter-spacing:2px;
+  padding:13px 38px; border-radius:100px; text-decoration:none;
+  box-shadow:0 8px 30px rgba(232,24,109,0.35); transition:all 0.15s;
+}
+.cta-btn:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(232,24,109,0.5); }
+.timer-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(245,230,66,0.1); border:1px solid rgba(245,230,66,0.4);
+  color:var(--yellow); font-weight:700; font-size:0.8rem;
+  padding:8px 16px; border-radius:100px; margin-top:14px; letter-spacing:0.5px;
+}
+.cta-expire { margin-top:14px; font-size:0.74rem; color:rgba(255,255,255,0.3); font-weight:600; }
+
+/* ── EMBAIXADORES ── */
+.embaixadores { background:#111; padding:48px 24px 56px; }
+.embaixadores-inner { max-width:600px; margin:0 auto; }
+.emb-header { text-align:center; margin-bottom:28px; }
+.emb-title { font-family:'Bebas Neue',sans-serif; font-size:1.7rem; letter-spacing:2px; margin-bottom:8px; }
+.emb-desc { font-size:0.86rem; color:rgba(255,255,255,0.5); max-width:380px; margin:0 auto; line-height:1.6; font-weight:600; }
+
+.emb-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:28px; }
+.emb-card { background:#1a1a1a; border-radius:16px; overflow:hidden; border:2px solid #2a2a2a; transition:border-color 0.2s; }
+.emb-card:hover { border-color:var(--pink); }
+.emb-photo-wrap {
+  width:100%; aspect-ratio:3/4; background:#242424; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.emb-photo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.emb-photo-wrap .ph {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:rgba(255,255,255,0.15); font-size:0.6rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.emb-photo-wrap .ph svg { opacity:0.15; }
+.emb-photo-wrap img ~ .ph { display:none; }
+.emb-info { padding:10px 12px 12px; text-align:center; }
+.emb-name { font-weight:900; font-size:0.82rem; color:#fff; margin-bottom:2px; }
+.emb-fotos { font-size:0.7rem; color:var(--pink); font-weight:700; }
+
+/* ── CAMPEÃ ── */
+.campea-box {
+  background:linear-gradient(135deg,var(--pink) 0%,#c01058 100%);
+  border-radius:20px; padding:26px 22px;
+  display:flex; align-items:center; gap:18px;
+}
+.campea-foto-wrap {
+  width:76px; height:76px; border-radius:50%;
+  background:rgba(255,255,255,0.2); flex-shrink:0;
+  border:3px solid rgba(255,255,255,0.4); overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.campea-foto-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.campea-foto-wrap .ph {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  color:rgba(255,255,255,0.5); font-size:0.55rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+}
+.campea-foto-wrap img ~ .ph { display:none; }
+.campea-info { flex:1; }
+.campea-crown { font-size:1.3rem; margin-bottom:3px; }
+.campea-label { font-size:0.62rem; text-transform:uppercase; letter-spacing:2px; font-weight:900; color:var(--yellow); margin-bottom:3px; }
+.campea-nome { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:#fff; letter-spacing:1px; line-height:1; margin-bottom:4px; }
+.campea-stat { font-size:0.8rem; font-weight:700; color:rgba(255,255,255,0.85); }
+.campea-stat strong { color:var(--yellow); }
+
+/* ── SURVEY SECTION ── */
+.survey-section {
+  background: var(--black);
+  padding: 56px 24px 60px;
+  position: relative; overflow: hidden;
+}
+.survey-section::before {
+  content:'';
+  position:absolute; top:-80px; right:-80px;
+  width:300px; height:300px;
+  background: radial-gradient(circle, rgba(232,24,109,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.survey-inner { max-width:600px; margin:0 auto; }
+
+.survey-header { text-align:center; margin-bottom:36px; }
+.survey-tag {
+  display:inline-block;
+  background: rgba(232,24,109,0.12);
+  border: 1.5px solid rgba(232,24,109,0.35);
+  color: var(--pink); font-weight:900; font-size:0.7rem;
+  letter-spacing:3px; text-transform:uppercase;
+  padding:6px 16px; border-radius:100px; margin-bottom:16px;
+}
+.survey-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size: clamp(2rem, 7vw, 3rem);
+  color:#fff; letter-spacing:1px; line-height:1.05;
+  margin-bottom:10px;
+}
+.survey-title span { color:var(--pink); }
+.survey-subtitle {
+  font-size:0.9rem; color:rgba(255,255,255,0.5); font-weight:600; line-height:1.6;
+}
+
+/* STAR RATING */
+.rating-box {
+  background:#161616; border:2px solid #2a2a2a;
+  border-radius:20px; padding:28px 24px; margin-bottom:16px;
+  text-align:center;
+}
+.rating-q {
+  font-weight:900; font-size:1rem; color:#fff;
+  margin-bottom:18px; line-height:1.4;
+}
+.stars { display:flex; justify-content:center; gap:10px; margin-bottom:8px; }
+.star {
+  font-size:2.4rem; cursor:pointer;
+  filter: grayscale(1) brightness(0.4);
+  transition: filter 0.15s, transform 0.15s;
+  user-select:none;
+}
+.star.active, .star:hover { filter:none; transform:scale(1.15); }
+.star-label {
+  font-size:0.78rem; color:rgba(255,255,255,0.35);
+  font-weight:700; height:20px; transition:color 0.2s;
+}
+
+/* INDICARIA */
+.indicaria-box {
+  background:#161616; border:2px solid #2a2a2a;
+  border-radius:20px; padding:28px 24px; margin-bottom:16px;
+}
+.indicaria-q {
+  font-weight:900; font-size:1rem; color:#fff;
+  margin-bottom:18px; line-height:1.4; text-align:center;
+}
+.indicaria-opts {
+  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+}
+.ind-opt {
+  flex:1; min-width:120px; max-width:180px;
+  background:#1e1e1e; border:2px solid #2e2e2e;
+  border-radius:14px; padding:14px 10px; text-align:center;
+  cursor:pointer; transition:all 0.18s;
+}
+.ind-opt:hover { border-color:#444; background:#222; }
+.ind-opt.selected.yes { border-color:var(--pink); background:rgba(232,24,109,0.1); }
+.ind-opt.selected.no { border-color:#555; background:#222; }
+.ind-opt .ind-icon { font-size:1.6rem; margin-bottom:6px; }
+.ind-opt .ind-label { font-weight:900; font-size:0.82rem; color:#fff; }
+.ind-opt .ind-sub { font-size:0.68rem; color:rgba(255,255,255,0.4); margin-top:2px; font-weight:600; }
+
+/* COMMENT */
+.comment-box {
+  background:#161616; border:2px solid #2a2a2a;
+  border-radius:20px; padding:24px; margin-bottom:20px;
+}
+.comment-q { font-weight:900; font-size:0.95rem; color:#fff; margin-bottom:14px; }
+.comment-input {
+  width:100%; background:#111; border:1.5px solid #2e2e2e;
+  border-radius:12px; color:#fff; font-family:'Nunito',sans-serif;
+  font-size:0.9rem; font-weight:600; padding:12px 16px;
+  resize:vertical; min-height:90px; outline:none;
+  transition:border-color 0.2s;
+}
+.comment-input::placeholder { color:rgba(255,255,255,0.2); }
+.comment-input:focus { border-color:var(--pink); }
+
+.survey-submit-btn {
+  width:100%; background:var(--pink); color:#fff;
+  font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px;
+  padding:16px; border-radius:14px; border:none; cursor:pointer;
+  box-shadow:0 8px 30px rgba(232,24,109,0.3); transition:all 0.15s;
+  margin-bottom:24px;
+}
+.survey-submit-btn:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(232,24,109,0.45); }
+
+/* THANK YOU STATE */
+.survey-thankyou {
+  display:none; text-align:center;
+  background:#161616; border:2px solid #2a2a2a;
+  border-radius:20px; padding:40px 24px;
+}
+.survey-thankyou.show { display:block; }
+.ty-emoji { font-size:3rem; margin-bottom:12px; }
+.ty-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--pink); letter-spacing:1px; margin-bottom:8px; }
+.ty-sub { font-size:0.9rem; color:rgba(255,255,255,0.6); font-weight:600; line-height:1.6; }
+
+/* GOOGLE REVIEW */
+.google-review-box {
+  margin-top:24px;
+  background: linear-gradient(135deg, #1a1a1a, #161616);
+  border:2px solid #2e2e2e; border-radius:20px;
+  padding:28px 24px; text-align:center;
+}
+.google-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:#fff; color:#333; font-weight:900; font-size:0.82rem;
+  padding:8px 16px; border-radius:100px; margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+}
+.google-badge svg { flex-shrink:0; }
+.gr-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:#fff; letter-spacing:1px; margin-bottom:8px; }
+.gr-sub { font-size:0.86rem; color:rgba(255,255,255,0.5); font-weight:600; margin-bottom:20px; line-height:1.5; }
+.gr-stars { font-size:1.4rem; margin-bottom:20px; letter-spacing:2px; }
+.gr-btn {
+  display:inline-flex; align-items:center; gap:10px;
+  background:#fff; color:#333; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:0.92rem; padding:14px 28px;
+  border-radius:100px; text-decoration:none;
+  box-shadow:0 6px 24px rgba(0,0,0,0.3); transition:all 0.15s;
+}
+.gr-btn:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(0,0,0,0.4); }
+
+/* ── FOOTER ── */
+footer { background:#0a0a0a; text-align:center; padding:36px 24px; border-top:1px solid #1e1e1e; }
+footer .logo { margin-bottom:14px; }
+footer p { font-size:0.76rem; color:rgba(255,255,255,0.3); font-weight:600; line-height:1.7; }
+footer p a { color:var(--pink); text-decoration:none; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.85); z-index:10000;
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:#1a1a1a; border:2px solid var(--pink); border-radius:20px;
+  padding:28px; width:100%; max-width:420px;
+}
+.modal h3 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:2px; margin-bottom:20px; color:var(--pink); }
+.modal label { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.6); display:block; margin-bottom:6px; margin-top:14px; }
+.modal input, .modal textarea {
+  width:100%; background:#111; border:1.5px solid #333; border-radius:10px;
+  color:#fff; font-family:'Nunito',sans-serif; font-size:0.9rem; font-weight:600;
+  padding:10px 14px; outline:none; transition:border-color 0.2s;
+}
+.modal input:focus, .modal textarea:focus { border-color:var(--pink); }
+.modal textarea { resize:vertical; min-height:70px; }
+.modal-btns { display:flex; gap:10px; margin-top:20px; }
+.modal-btns button { flex:1; }
+</style>
+</head>
+<body>
+
+<div class="edit-indicator">✏️ Modo Edição Ativo — clique em textos ou fotos para editar</div>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <span class="tb-logo">⚡ SNAPZ</span>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="edit-mode-toggle" onclick="toggleEditMode()">✏️ Modo Edição</button>
+  <button class="tb-btn" onclick="openStatsModal()">📊 Estatísticas</button>
+  <button class="tb-btn" onclick="openLinkModal()">🔗 Link da Galeria</button>
+  <button class="tb-btn" onclick="openGoogleModal()">⭐ Link Google</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn primary" onclick="exportPage()">⬇️ Baixar Página</button>
+  <a id="insta-btn" href="#" target="_blank" class="tb-btn insta-pulse" onclick="openInstaModal(event)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+    Siga a gente no Instagram
+  </a>
+  <span class="tb-hint">Clique em textos ou fotos para editar</span>
+</div>
+
+<!-- PAGE -->
+<div id="page">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="logo-upload-wrap" id="logo-hero-wrap" onclick="triggerLogoUpload('logo-hero-img','logo-hero-wrap')" title="Clique para inserir logo">
+    <img id="logo-hero-img" src="" alt="Logo" style="display:none; max-height:60px; max-width:220px; object-fit:contain;">
+    <div class="logo-placeholder" id="logo-hero-ph">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <span>Inserir logo (PNG / SVG)</span>
+    </div>
+  </div>
+  <div class="hero-badge" data-edit contenteditable="false">✦ Memória do seu evento ✦</div>
+  <h1><span data-edit contenteditable="false">Seu evento<br>foi </span><span class="hl" data-edit contenteditable="false">incrível</span><span data-edit contenteditable="false">!</span></h1>
+  <p class="hero-sub" data-edit contenteditable="false">Seus convidados amaram cada clique. Aqui estão as memórias que a Snapz capturou para vocês guardarem para sempre.</p>
+</section>
+
+<!-- COVER -->
+<div class="cover-wrap">
+  <div class="cover-photo-wrap" onclick="triggerPhotoUpload('cover-img', this)">
+    <img id="cover-img" src="" alt="" style="display:none">
+    <div class="placeholder-txt">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V4h8v2"/></svg>
+      Clique para adicionar<br>foto de capa
+    </div>
+  </div>
+  <div class="polaroid-tag" data-edit contenteditable="false">📸 Nome do Evento • Data</div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num" data-edit contenteditable="false">247</div>
+    <div class="stat-label">Fotos tiradas</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" data-edit contenteditable="false">83</div>
+    <div class="stat-label">Convidados</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" data-edit contenteditable="false">15s</div>
+    <div class="stat-label">Entrega</div>
+  </div>
+</div>
+
+<!-- GALERIA -->
+<div class="section">
+  <div class="section-label">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8186D" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <span>Momentos capturados</span>
+  </div>
+
+  <div class="foto-grid">
+    <div class="photo-slot large" onclick="triggerPhotoUpload('foto-1', this)">
+      <img id="foto-1" src="" alt="" style="display:none">
+      <div class="ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V4h8v2"/></svg>Foto destaque</div>
+    </div>
+  </div>
+  <div class="foto-grid-3">
+    <div class="photo-slot sq" onclick="triggerPhotoUpload('foto-2', this)">
+      <img id="foto-2" src="" alt="" style="display:none">
+      <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Foto 2</div>
+    </div>
+    <div class="photo-slot sq" onclick="triggerPhotoUpload('foto-3', this)">
+      <img id="foto-3" src="" alt="" style="display:none">
+      <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Foto 3</div>
+    </div>
+    <div class="photo-slot sq" onclick="triggerPhotoUpload('foto-4', this)">
+      <img id="foto-4" src="" alt="" style="display:none">
+      <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Foto 4</div>
+    </div>
+  </div>
+  <div class="foto-row-2">
+    <div class="photo-slot sq" onclick="triggerPhotoUpload('foto-5', this)">
+      <img id="foto-5" src="" alt="" style="display:none">
+      <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Foto 5</div>
+    </div>
+    <div class="photo-slot sq" onclick="triggerPhotoUpload('foto-6', this)">
+      <img id="foto-6" src="" alt="" style="display:none">
+      <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Foto 6</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="section" style="padding-top:0">
+  <div class="cta-box">
+    <h2 data-edit contenteditable="false">Todas as fotos<br>estão te esperando 🎉</h2>
+    <p data-edit contenteditable="false">Acesse a galeria completa e baixe todas as imagens em alta resolução. Compartilhe com seus convidados!</p>
+    <a id="cta-link" href="#" class="cta-btn">⚡ ACESSAR GALERIA</a><br>
+    <div class="timer-badge">⏳ Link disponível por <strong id="dias-disponiveis" style="margin-left:4px" data-edit contenteditable="false">30 dias</strong></div>
+    <p class="cta-expire" data-edit contenteditable="false">O link expira em [DATA LIMITE]. Faça o download antes!</p>
+  </div>
+</div>
+
+<!-- EMBAIXADORES -->
+<section class="embaixadores">
+  <div class="embaixadores-inner">
+    <div class="emb-header">
+      <div class="emb-title">⭐ Embaixadores Snapz</div>
+      <p class="emb-desc" data-edit contenteditable="false">Esses convidados foram escolhidos pelos noivos para agitar a festa e trazer todo mundo para a cabine. Sem eles, a festa não seria a mesma!</p>
+    </div>
+
+    <div class="emb-grid">
+      <!-- Embaixador 1 -->
+      <div class="emb-card">
+        <div class="emb-photo-wrap" onclick="triggerPhotoUpload('emb-1', this)">
+          <img id="emb-1" src="" alt="" style="display:none">
+          <div class="ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Foto</div>
+        </div>
+        <div class="emb-info">
+          <div class="emb-name" data-edit contenteditable="false">Nome</div>
+          <div class="emb-fotos" data-edit contenteditable="false">32 fotos</div>
+        </div>
+      </div>
+      <!-- Embaixador 2 -->
+      <div class="emb-card">
+        <div class="emb-photo-wrap" onclick="triggerPhotoUpload('emb-2', this)">
+          <img id="emb-2" src="" alt="" style="display:none">
+          <div class="ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Foto</div>
+        </div>
+        <div class="emb-info">
+          <div class="emb-name" data-edit contenteditable="false">Nome</div>
+          <div class="emb-fotos" data-edit contenteditable="false">28 fotos</div>
+        </div>
+      </div>
+      <!-- Embaixador 3 -->
+      <div class="emb-card">
+        <div class="emb-photo-wrap" onclick="triggerPhotoUpload('emb-3', this)">
+          <img id="emb-3" src="" alt="" style="display:none">
+          <div class="ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Foto</div>
+        </div>
+        <div class="emb-info">
+          <div class="emb-name" data-edit contenteditable="false">Nome</div>
+          <div class="emb-fotos" data-edit contenteditable="false">21 fotos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMPEÃ -->
+    <div class="campea-box">
+      <div class="campea-foto-wrap" onclick="triggerPhotoUpload('campea-foto', this)">
+        <img id="campea-foto" src="" alt="" style="display:none">
+        <div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Foto</div>
+      </div>
+      <div class="campea-info">
+        <div class="campea-crown">👑</div>
+        <div class="campea-label">Estrela da Festa</div>
+        <div class="campea-nome" data-edit contenteditable="false">NOME DA ESTRELA</div>
+        <div class="campea-stat" data-edit contenteditable="false">A convidada que mais tirou fotos na Snapz! <strong>47 registros</strong> 🔥</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SURVEY & GOOGLE REVIEW -->
+<section class="survey-section">
+  <div class="survey-inner">
+    <div class="survey-header">
+      <div class="survey-tag">📋 Pesquisa de Satisfação</div>
+      <div class="survey-title">O que você achou<br>da <span>Snapz</span>?</div>
+      <p class="survey-subtitle">Leva só 30 segundos e ajuda muito a gente a melhorar cada vez mais!</p>
+    </div>
+
+    <div id="survey-form">
+      <!-- ESTRELAS -->
+      <div class="rating-box">
+        <div class="rating-q">⚡ Como você avalia a experiência Snapz no evento?</div>
+        <div class="stars">
+          <span class="star" data-val="1" onclick="setStar(1)">⭐</span>
+          <span class="star" data-val="2" onclick="setStar(2)">⭐</span>
+          <span class="star" data-val="3" onclick="setStar(3)">⭐</span>
+          <span class="star" data-val="4" onclick="setStar(4)">⭐</span>
+          <span class="star" data-val="5" onclick="setStar(5)">⭐</span>
+        </div>
+        <div class="star-label" id="star-label">Toque em uma estrela para avaliar</div>
+      </div>
+
+      <!-- INDICARIA -->
+      <div class="indicaria-box">
+        <div class="indicaria-q">💬 Você indicaria a Snapz para um amigo ou familiar que vai ter um evento?</div>
+        <div class="indicaria-opts">
+          <div class="ind-opt yes" onclick="selectInd(this,'sim')">
+            <div class="ind-icon">🤩</div>
+            <div class="ind-label">Com certeza!</div>
+            <div class="ind-sub">Já to indicando</div>
+          </div>
+          <div class="ind-opt" onclick="selectInd(this,'talvez')">
+            <div class="ind-icon">🤔</div>
+            <div class="ind-label">Talvez</div>
+            <div class="ind-sub">Dependendo</div>
+          </div>
+          <div class="ind-opt no" onclick="selectInd(this,'nao')">
+            <div class="ind-icon">😕</div>
+            <div class="ind-label">Não</div>
+            <div class="ind-sub">Precisa melhorar</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMENTÁRIO -->
+      <div class="comment-box">
+        <div class="comment-q">✍️ Deixe um comentário (opcional)</div>
+        <textarea class="comment-input" id="survey-comment" placeholder="Conta pra gente o que foi mais marcante no evento…"></textarea>
+      </div>
+
+      <button class="survey-submit-btn" onclick="submitSurvey()">⚡ ENVIAR AVALIAÇÃO</button>
+    </div>
+
+    <!-- THANK YOU -->
+    <div class="survey-thankyou" id="survey-thankyou">
+      <div class="ty-emoji">🎉</div>
+      <div class="ty-title">Obrigado pelo feedback!</div>
+      <p class="ty-sub">Sua opinião é muito importante pra gente continuar criando experiências incríveis em cada evento.</p>
+    </div>
+
+    <!-- GOOGLE REVIEW -->
+    <div class="google-review-box">
+      <div class="google-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Google
+      </div>
+      <div class="gr-title">Curtiu? Nos avalie<br>no Google também!</div>
+      <p class="gr-sub">Sua avaliação no Google ajuda outros noivos e anfitriões a conhecerem a Snapz e terem essa experiência no evento deles.</p>
+      <div class="gr-stars">⭐⭐⭐⭐⭐</div>
+      <a href="#" id="google-review-link" class="gr-btn" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Avaliar no Google
+      </a>
+      <p style="margin-top:12px;font-size:0.72rem;color:rgba(255,255,255,0.25);font-weight:600;">
+        💡 Cole o link do Google no botão 🔗 da barra de ferramentas
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo-upload-wrap logo-upload-footer" id="logo-footer-wrap" onclick="triggerLogoUpload('logo-footer-img','logo-footer-wrap')" title="Clique para inserir logo">
+    <img id="logo-footer-img" src="" alt="Logo" style="display:none; max-height:50px; max-width:180px; object-fit:contain;">
+    <div class="logo-placeholder" id="logo-footer-ph">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <span>Inserir logo (PNG / SVG)</span>
+    </div>
+  </div>
+  <p>Feito com ❤️ pela equipe Snapz<br>
+  <a href="https://snapfoto.com.br">snapfoto.com.br</a> • A experiência de foto mais incrível para o seu evento</p>
+</footer>
+
+</div><!-- /page -->
+
+<!-- MODALS -->
+<!-- Stats Modal -->
+<div class="modal-overlay" id="stats-modal">
+  <div class="modal">
+    <h3>📊 Editar Estatísticas</h3>
+    <label>Fotos tiradas</label>
+    <input type="text" id="stat-fotos" placeholder="247">
+    <label>Convidados</label>
+    <input type="text" id="stat-convidados" placeholder="83">
+    <label>Tempo de entrega</label>
+    <input type="text" id="stat-tempo" placeholder="15s">
+    <div class="modal-btns">
+      <button class="tb-btn" onclick="closeModal('stats-modal')">Cancelar</button>
+      <button class="tb-btn primary" onclick="saveStats()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link Modal -->
+<div class="modal-overlay" id="link-modal">
+  <div class="modal">
+    <h3>🔗 Link da Galeria</h3>
+    <label>URL da galeria</label>
+    <input type="url" id="input-link" placeholder="https://galeria.snapz.com.br/seu-evento">
+    <label>Data de expiração (ex: 15/08/2025)</label>
+    <input type="text" id="input-expire" placeholder="15/08/2025">
+    <div class="modal-btns">
+      <button class="tb-btn" onclick="closeModal('link-modal')">Cancelar</button>
+      <button class="tb-btn primary" onclick="saveLink()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Google Review Modal -->
+<div class="modal-overlay" id="google-modal">
+  <div class="modal">
+    <h3>⭐ Link do Google</h3>
+    <label>Cole aqui o link da sua página no Google</label>
+    <input type="url" id="input-google" placeholder="https://g.page/r/snapz-sao-jose-rio-preto/review">
+    <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:10px;font-weight:600;line-height:1.5;">
+      Para encontrar: pesquise "Snapz" no Google Maps → clique em "Fazer avaliação" → copie a URL
+    </p>
+    <div class="modal-btns">
+      <button class="tb-btn" onclick="closeModal('google-modal')">Cancelar</button>
+      <button class="tb-btn primary" onclick="saveGoogleLink()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Instagram Modal -->
+<div class="modal-overlay" id="insta-modal">
+  <div class="modal">
+    <h3 style="color:var(--pink)">📱 Instagram da Snapz</h3>
+    <label>Link do perfil no Instagram</label>
+    <input type="url" id="input-insta" placeholder="https://instagram.com/snapzoficial">
+    <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:10px;font-weight:600;line-height:1.5;">
+      Cole o link completo do seu perfil. O botão abrirá o Instagram ao ser clicado.
+    </p>
+    <div class="modal-btns">
+      <button class="tb-btn" onclick="closeModal('insta-modal')">Cancelar</button>
+      <button class="tb-btn primary" onclick="saveInstaLink()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept="image/*" style="display:none">
+
+<script>
+// ── EDIT MODE ──
+let editMode = false;
+function toggleEditMode() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const btn = document.getElementById('edit-mode-toggle');
+  btn.textContent = editMode ? '👁️ Ver Página' : '✏️ Modo Edição';
+  document.querySelectorAll('[data-edit]').forEach(el => {
+    el.contentEditable = editMode ? 'true' : 'false';
+  });
+}
+
+// ── PHOTO UPLOAD ──
+let currentImgId = null;
+let currentSlot = null;
+
+function triggerPhotoUpload(imgId, slot) {
+  if (!editMode) return;
+  currentImgId = imgId;
+  currentSlot = slot;
+  document.getElementById('file-input').click();
+}
+
+// Logo upload (works even outside edit mode)
+let currentLogoImgId = null;
+let currentLogoWrapId = null;
+const logoFileInput = document.createElement('input');
+logoFileInput.type = 'file'; logoFileInput.accept = 'image/*';
+logoFileInput.style.display = 'none';
+document.body.appendChild(logoFileInput);
+logoFileInput.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !currentLogoImgId) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = document.getElementById(currentLogoImgId);
+    img.src = ev.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+function triggerLogoUpload(imgId, wrapId) {
+  currentLogoImgId = imgId;
+  currentLogoWrapId = wrapId;
+  logoFileInput.click();
+}
+
+function openInstaModal(e) {
+  e.preventDefault();
+  const cur = document.getElementById('insta-btn').href;
+  document.getElementById('input-insta').value = cur === location.href ? '' : cur;
+  document.getElementById('insta-modal').classList.add('open');
+}
+function saveInstaLink() {
+  const url = document.getElementById('input-insta').value.trim();
+  if (url) document.getElementById('insta-btn').href = url;
+  closeModal('insta-modal');
+}
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !currentImgId) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = document.getElementById(currentImgId);
+    img.src = ev.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+// ── MODALS ──
+function openStatsModal() {
+  const fotos = document.querySelectorAll('.stat-num');
+  document.getElementById('stat-fotos').value = fotos[0].textContent;
+  document.getElementById('stat-convidados').value = fotos[1].textContent;
+  document.getElementById('stat-tempo').value = fotos[2].textContent;
+  document.getElementById('stats-modal').classList.add('open');
+}
+function saveStats() {
+  const nums = document.querySelectorAll('.stat-num');
+  nums[0].textContent = document.getElementById('stat-fotos').value || nums[0].textContent;
+  nums[1].textContent = document.getElementById('stat-convidados').value || nums[1].textContent;
+  nums[2].textContent = document.getElementById('stat-tempo').value || nums[2].textContent;
+  closeModal('stats-modal');
+}
+
+function openLinkModal() {
+  const link = document.getElementById('cta-link').href;
+  document.getElementById('input-link').value = link === location.href ? '' : link;
+  document.getElementById('link-modal').classList.add('open');
+}
+function saveLink() {
+  const url = document.getElementById('input-link').value.trim();
+  const expire = document.getElementById('input-expire').value.trim();
+  if (url) document.getElementById('cta-link').href = url;
+  if (expire) {
+    const expEl = document.querySelector('.cta-expire');
+    expEl.textContent = `O link expira em ${expire}. Faça o download antes!`;
+  }
+  closeModal('link-modal');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ── SURVEY ──
+let selectedStar = 0;
+let selectedInd = '';
+
+const starLabels = ['','Péssimo 😞','Ruim 😕','Ok 🙂','Bom 😊','Incrível! 🤩'];
+
+function setStar(val) {
+  selectedStar = val;
+  document.querySelectorAll('.star').forEach((s,i) => {
+    s.classList.toggle('active', i < val);
+  });
+  document.getElementById('star-label').textContent = starLabels[val];
+  document.getElementById('star-label').style.color = val >= 4 ? 'var(--yellow)' : 'rgba(255,255,255,0.5)';
+}
+
+function selectInd(el, val) {
+  selectedInd = val;
+  document.querySelectorAll('.ind-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function submitSurvey() {
+  document.getElementById('survey-form').style.display = 'none';
+  document.getElementById('survey-thankyou').classList.add('show');
+}
+
+function openGoogleModal() {
+  const cur = document.getElementById('google-review-link').href;
+  document.getElementById('input-google').value = cur === location.href ? '' : cur;
+  document.getElementById('google-modal').classList.add('open');
+}
+function saveGoogleLink() {
+  const url = document.getElementById('input-google').value.trim();
+  if (url) document.getElementById('google-review-link').href = url;
+  closeModal('google-modal');
+}
+
+// ── EXPORT ──
+function exportPage() {
+  // turn off edit mode before export
+  if (editMode) toggleEditMode();
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snapz — Seu Evento</title>
+${document.querySelector('head link').outerHTML}
+<style>${document.querySelector('style').textContent.replace(/#toolbar[\s\S]*?\.modal-overlay[\s\S]*?\}[\s\S]*?\}[\s\S]*?\}[\s\S]*?\}[\s\S]*?\}[\s\S]*?\}/,'').split('/* ── TOOLBAR')[0]}
+</style>
+</head>
+<body style="margin-top:0">
+${document.getElementById('page').innerHTML}
+</body></html>`;
+
+  const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'snapz-evento.html';
+  a.click();
+}
+</script>
+</body>
+</html>
