@@ -121,6 +121,28 @@ body.edit-mode [data-edit]:focus {
 }
 body.edit-mode .edit-indicator { display: block; }
 
+/* ── HERO TOP ROW ── */
+.hero-top-row {
+  display:flex; align-items:center; justify-content:center;
+  gap:16px; margin-bottom:32px; flex-wrap:wrap;
+}
+.hero-top-row .logo-upload-wrap {
+  margin-bottom:0 !important;
+  min-height:44px; min-width:120px;
+  border:2px dashed rgba(232,24,109,0.35);
+  border-radius:10px; padding:8px 14px;
+}
+.insta-hero-pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--pink);
+  color:#fff; font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:0.85rem; padding:10px 20px; border-radius:100px;
+  text-decoration:none; letter-spacing:0.3px;
+  animation: insta-blink 1.4s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(232,24,109,0.4);
+}
+.insta-hero-pill:hover { background: #c5105a; }
+
 /* ── HERO ── */
 .hero {
   background: var(--black);
@@ -486,9 +508,9 @@ footer p a { color:var(--pink); text-decoration:none; }
   <button class="tb-btn" onclick="openGoogleModal()">⭐ Link Google</button>
   <div class="tb-sep"></div>
   <button class="tb-btn primary" onclick="exportPage()">⬇️ Baixar Página</button>
-  <a id="insta-btn" href="#" target="_blank" class="tb-btn insta-pulse" onclick="openInstaModal(event)">
+  <a id="insta-btn" href="#" target="_blank" class="tb-btn" onclick="openInstaModal(event)">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
-    Siga a gente no Instagram
+    Instagram
   </a>
   <span class="tb-hint">Clique em textos ou fotos para editar</span>
 </div>
@@ -498,14 +520,19 @@ footer p a { color:var(--pink); text-decoration:none; }
 
 <!-- HERO -->
 <section class="hero">
-  <div class="logo-upload-wrap" id="logo-hero-wrap" onclick="triggerLogoUpload('logo-hero-img','logo-hero-wrap')" title="Clique para inserir logo">
-    <img id="logo-hero-img" src="" alt="Logo" style="display:none; max-height:60px; max-width:220px; object-fit:contain;">
-    <div class="logo-placeholder" id="logo-hero-ph">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      <span>Inserir logo (PNG / SVG)</span>
+  <div class="hero-top-row">
+    <div class="logo-upload-wrap" id="logo-hero-wrap" onclick="triggerLogoUpload('logo-hero-img','logo-hero-wrap')" title="Clique para inserir logo">
+      <img id="logo-hero-img" src="" alt="Logo" style="display:none; max-height:44px; max-width:160px; object-fit:contain;">
+      <div class="logo-placeholder" id="logo-hero-ph">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span>Inserir logo</span>
+      </div>
     </div>
+    <a id="insta-hero-btn" href="#" target="_blank" onclick="openInstaModal(event)" class="insta-hero-pill">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      Siga a gente no Instagram
+    </a>
   </div>
-  <div class="hero-badge" data-edit contenteditable="false">✦ Memória do seu evento ✦</div>
   <h1><span data-edit contenteditable="false">Seu evento<br>foi </span><span class="hl" data-edit contenteditable="false">incrível</span><span data-edit contenteditable="false">!</span></h1>
   <p class="hero-sub" data-edit contenteditable="false">Seus convidados amaram cada clique. Aqui estão as memórias que a Snapz capturou para vocês guardarem para sempre.</p>
 </section>
@@ -869,7 +896,10 @@ function openInstaModal(e) {
 }
 function saveInstaLink() {
   const url = document.getElementById('input-insta').value.trim();
-  if (url) document.getElementById('insta-btn').href = url;
+  if (url) {
+    document.getElementById('insta-btn').href = url;
+    document.getElementById('insta-hero-btn').href = url;
+  }
   closeModal('insta-modal');
 }
 
